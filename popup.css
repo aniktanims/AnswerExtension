@@ -1,0 +1,254 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  width: 400px;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 20px;
+}
+
+h1 {
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  color: #1a73e8;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 16px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: #e8661a;
+  border-bottom: 2px solid #e8661a;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.status {
+  padding: 8px;
+  background-color: #f1f3f4;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+textarea {
+  min-height: 100px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.answer-content {
+  padding: 12px;
+  background-color: #f0f7ff;
+  border-left: 3px solid #34a853;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  background-color: #e86c1a;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  flex: 1;
+}
+
+button:hover {
+  background-color: #c0380f;
+  color: white;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: #f1f3f4;
+  color: #333;
+}
+
+.icon-btn:hover {
+  background-color: #e8eaed;
+}
+
+#question-list {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+#question-list li {
+  margin-bottom: 8px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+#question-list li:hover {
+  background-color: #f1f3f4;
+}
+
+#question-list li.selected {
+  background-color: #e8f0fe;
+  border-left: 3px solid #1a73e8;
+  padding-left: 8px;
+}
+
+.settings-toggle {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#settings-toggle-btn {
+  flex: 0;
+  background-color: #f1f3f4;
+  color: #333;
+}
+
+.settings {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+input[type="checkbox"] {
+  margin: 0;
+}
+
+#save-settings {
+  align-self: flex-start;
+}
+
+/* Update the debug section styling to make it more visible */
+.debug-section {
+  margin-top: 16px;
+  border-top: 1px solid #ddd;
+  padding-top: 8px;
+  font-size: 12px;
+}
+
+.debug-section summary {
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+}
+
+.debug-content {
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 8px;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Make the manual input more prominent */
+#manual-input {
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+#manual-input:focus {
+  border-color: #1a73e8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
+.developer{
+  margin-top: -10px;
+}

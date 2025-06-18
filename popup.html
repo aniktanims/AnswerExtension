@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bengali AI Assistant</title>
+  <link href="popup.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+      <img src="/icons/icon128.png" alt="" height="20" width="20" class="logo">
+      <h1 class="logotext" style="margin: 0; color: #e86c1a;">Babel AI Assistant - MTA</h1>
+  </div>
+  
+    <p class="developer" style="text-align: center;">Developed by Mostofa Tanim Anik - Software Engineer</p>
+    
+    <div class="tabs">
+      <button id="auto-tab" class="tab-btn active">অটো মূড</button>
+      <button id="manual-tab" class="tab-btn">ম্যানুয়াল</button>
+    </div>
+    
+    <div id="auto-panel" class="panel">
+      <div id="status" class="status">পেজ এ প্রশ্নগুলো খোজা হচ্ছে...</div>
+      
+      <div id="questions-container" class="hidden">
+        <h2>Detected Questions:</h2>
+        <ul id="question-list"></ul>
+      </div>
+      
+      <div class="buttons">
+        <button id="scan-btn">স্কান করুন</button>
+        <button id="generate-all-btn">উত্তর দেখুন</button>
+        <button id="display-all-btn">ফ্লটিং দেখুন</button>
+      </div>
+    </div>
+    
+    <div id="manual-panel" class="panel hidden">
+      <div class="input-section">
+        <label for="manual-input">আপনার প্রশ্নটি লেখুন:</label>
+        <textarea id="manual-input" placeholder="Paste or type your Bengali question here..."></textarea>
+      </div>
+      
+      <div class="buttons">
+        <button id="manual-generate-btn">উত্তর দেখুন</button>
+        <button id="manual-display-btn">ফ্লটিং দেখুন</button>
+      </div>
+    </div>
+    
+    <div id="answer-container" class="hidden">
+      <h2>AI Answer:</h2>
+      <div id="answer-content" class="answer-content"></div>
+      <button id="copy-answer-btn" class="icon-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy
+      </button>
+    </div>
+    
+    <div class="settings-toggle">
+      <button id="settings-toggle-btn">Settings</button>
+    </div>
+    
+    <div id="settings-panel" class="settings hidden">
+      <h2>Settings</h2>
+      
+      <div class="setting-group">
+        <label for="api-key">Google AI API Key:</label>
+        <input type="password" id="api-key" value="AIzaSyBXSl3egXRahZUnE4sJiJuOzFcWG2tZUFU">
+      </div>
+      
+      <div class="setting-group">
+        <label for="model-select">AI Model:</label>
+        <select id="model-select">
+          <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+          <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+        </select>
+      </div>
+      
+      <div class="setting-group">
+        <label for="question-selector">Question Selector:</label>
+        <input type="text" id="question-selector" value=".text-xl" placeholder="CSS selector for questions">
+      </div>
+      
+      <div class="setting-group">
+        <div class="checkbox-container">
+          <input type="checkbox" id="auto-detect" checked>
+          <label for="auto-detect">Auto-detect questions on page load</label>
+        </div>
+        
+        <div class="checkbox-container">
+          <input type="checkbox" id="respond-bengali" checked>
+          <label for="respond-bengali">Respond in Bengali</label>
+        </div>
+      </div>
+      
+      <button id="save-settings">Save Settings</button>
+    </div>
+    
+    <div class="debug-section">
+      <details open>
+        <summary>Debug Info</summary>
+        <div id="debug-info" class="debug-content">
+          <p>Extension initialized. Waiting for actions...<br>Developed by: Mostofa Tanim Anik, Senior Software Engineer</p>
+        
+        </div>
+      </details>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+  <style>
+.debug-section {
+  margin-top: 16px;
+  border-top: 1px dashed #ddd;
+  padding-top: 8px;
+  font-size: 12px;
+}
+
+.debug-section summary {
+  cursor: pointer;
+  color: #666;
+}
+
+.debug-content {
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 8px;
+  white-space: normal;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.display-settings, .detection-settings, .auto-settings {
+  margin-bottom: 12px;
+}
+
+.auto-settings {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+</style>
+  <script>
+// Debug helper function
+function updateDebugInfo(message) {
+  const debugInfo = document.getElementById('debug-info');
+  if (debugInfo) {
+    const timestamp = new Date().toLocaleTimeString();
+    debugInfo.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+  }
+}
+
+// Update existing functions to log debug information
+function detectQuestionsOnPage() {
+  updateDebugInfo("Starting question detection...");
+  // ... rest of the function
+}
+
+// Add debug logging to API calls
+async function getAIResponse(text, apiKey, inBengali, model) {
+  updateDebugInfo(`Calling API with model: ${model}`);
+  // ... rest of the function
+}
+</script>
+</body>
+</html>
