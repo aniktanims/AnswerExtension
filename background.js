@@ -9,6 +9,25 @@ chrome.runtime.onInstalled.addListener(() => {
     questionSelector: ".text-xl",
     autoDetect: true,
     respondBengali: true,
+    showNotifications: true,
+  })
+
+  // Initialize usage stats
+  const today = new Date().toDateString()
+  chrome.storage.local.get(['usageStats'], (result) => {
+    const stats = result.usageStats || {}
+    if (!stats[today]) {
+      stats[today] = { questionsAnswered: 0, timeSpent: 0 }
+      chrome.storage.local.set({ usageStats: stats })
+    }
+  })
+
+  // Show installation notification
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: 'Babel AI Assistant Installed',
+    message: 'Ready to help you with Bengali questions and answers!'
   })
 })
 
@@ -20,10 +39,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     generateAnswer(request.question, request.settings)
       .then((answer) => {
         console.log("Answer generated successfully")
+        
+        // Show notification for successful answer generation
+        chrome.storage.sync.get(['showNotifications'], (settings) => {
+          if (settings.showNotifications !== false) {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: 'Answer Generated',
+              message: 'Your question has been answered successfully!'
+            })
+          }
+        })
+        
         sendResponse({ success: true, answer: answer })
       })
       .catch((error) => {
         console.error("Error generating answer:", error)
+        
+        // Show error notification
+        chrome.storage.sync.get(['showNotifications'], (settings) => {
+          if (settings.showNotifications !== false) {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: 'Error',
+              message: 'Failed to generate answer. Please try again.'
+            })
+          }
+        })
+        
         sendResponse({ success: false, error: error.message })
       })
     return true // Required for async sendResponse
@@ -33,10 +78,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     generateAnswers(request.questions, request.settings)
       .then((answers) => {
         console.log("All answers generated successfully")
+        
+        // Show notification for successful batch generation
+        chrome.storage.sync.get(['showNotifications'], (settings) => {
+          if (settings.showNotifications !== false) {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: 'Batch Processing Complete',
+              message: `Successfully generated ${answers.length} answers!`
+            })
+          }
+        })
+        
         sendResponse({ success: true, answers: answers })
       })
       .catch((error) => {
         console.error("Error generating answers:", error)
+        
+        // Show error notification
+        chrome.storage.sync.get(['showNotifications'], (settings) => {
+          if (settings.showNotifications !== false) {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: 'Batch Processing Failed',
+              message: 'Failed to generate some answers. Please try again.'
+            })
+          }
+        })
+        
         sendResponse({ success: false, error: error.message })
       })
     return true // Required for async sendResponse
@@ -155,3 +226,35 @@ async function callGeminiAPI(question, settings) {
     throw error
   }
 }
+
+// Clean up old usage stats (keep only last 30 days)
+function cleanupOldStats() {
+  chrome.storage.local.get(['usageStats'], (result) => {
+    const stats = result.usageStats || {}
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const cleanedStats = {}
+    Object.keys(stats).forEach(dateString => {
+      const date = new Date(dateString)
+      if (date >= thirtyDaysAgo) {
+        cleanedStats[dateString] = stats[dateString]
+      }
+    })
+    
+    chrome.storage.local.set({ usageStats: cleanedStats })
+  })
+}
+
+// Run cleanup daily
+chrome.alarms.create('cleanupStats', { delayInMinutes: 1440, periodInMinutes: 1440 })
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'cleanupStats') {
+    cleanupOldStats()
+  }
+})
+
+// Handle notification clicks
+chrome.notifications.onClicked.addListener((notificationId) => {
+  chrome.action.openPopup()
+})

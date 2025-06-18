@@ -14,9 +14,29 @@
   
     <p class="developer" style="text-align: center;">Developed by Mostofa Tanim Anik - Software Engineer</p>
     
+    <!-- Notification Area -->
+    <div id="notification-area" class="notification-area hidden">
+      <div id="notification-content" class="notification-content">
+        <span id="notification-text"></span>
+        <button id="notification-close" class="notification-close">×</button>
+      </div>
+    </div>
+    
+    <!-- Usage Stats -->
+    <div class="usage-stats">
+      <div class="usage-item">
+        <span class="usage-label">Today's Questions:</span>
+        <span id="today-count" class="usage-count">0</span>
+      </div>
+      <div class="usage-item">
+        <span class="usage-label">Total Time Used:</span>
+        <span id="total-time" class="usage-count">0m</span>
+      </div>
+    </div>
+    
     <div class="tabs">
       <button id="auto-tab" class="tab-btn active">অটো মূড</button>
-      <button id="manual-tab" class="tab-btn">ম্যানুয়াল</button>
+      <button id="manual-tab" class="tab-btn">ম্যানুয়াল</button>
     </div>
     
     <div id="auto-panel" class="panel">
@@ -91,9 +111,17 @@
           <input type="checkbox" id="respond-bengali" checked>
           <label for="respond-bengali">Respond in Bengali</label>
         </div>
+        
+        <div class="checkbox-container">
+          <input type="checkbox" id="show-notifications" checked>
+          <label for="show-notifications">Show notifications</label>
+        </div>
       </div>
       
-      <button id="save-settings">Save Settings</button>
+      <div class="buttons">
+        <button id="save-settings">Save Settings</button>
+        <button id="reset-stats" class="icon-btn">Reset Stats</button>
+      </div>
     </div>
     
     <div class="debug-section">
@@ -137,6 +165,107 @@
 .auto-settings {
   border-top: 1px solid #eee;
   padding-top: 12px;
+}
+
+/* Notification styles */
+.notification-area {
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.notification-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.notification-content.warning {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.notification-content.error {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.notification-content.info {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.notification-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Usage stats styles */
+.usage-stats {
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #dee2e6;
+}
+
+.usage-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.usage-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.usage-count {
+  font-size: 18px;
+  font-weight: bold;
+  color: #e86c1a;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.usage-count.updated {
+  animation: pulse 0.5s ease-in-out;
 }
 </style>
   <script>

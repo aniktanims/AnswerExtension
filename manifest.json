@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Babel AI Assistant by Mostofa Tanim Anik",
-  "version": "2.0",
-  "description": "Extract Bengali questions and get AI-powered answers",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "version": "2.1",
+  "description": "Extract Bengali questions and get AI-powered answers with usage tracking",
+  "permissions": ["storage", "activeTab", "scripting", "notifications", "alarms"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

@@ -23,8 +23,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const questionSelectorInput = document.getElementById("question-selector")
   const autoDetectCheckbox = document.getElementById("auto-detect")
   const respondBengaliCheckbox = document.getElementById("respond-bengali")
+  const showNotificationsCheckbox = document.getElementById("show-notifications")
   const saveSettingsBtn = document.getElementById("save-settings")
+  const resetStatsBtn = document.getElementById("reset-stats")
   const debugInfo = document.getElementById("debug-info")
+  
+  // Notification elements
+  const notificationArea = document.getElementById("notification-area")
+  const notificationContent = document.getElementById("notification-content")
+  const notificationText = document.getElementById("notification-text")
+  const notificationClose = document.getElementById("notification-close")
+  
+  // Usage stats elements
+  const todayCountElement = document.getElementById("today-count")
+  const totalTimeElement = document.getElementById("total-time")
 
   // State variables
   let detectedQuestions = []
@@ -32,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedQuestionIndex = -1
   let currentManualQuestion = ""
   let currentManualAnswer = ""
+  let sessionStartTime = Date.now()
 
   // Debug helper function
   function log(message) {
@@ -40,6 +53,103 @@ document.addEventListener("DOMContentLoaded", () => {
       const timestamp = new Date().toLocaleTimeString()
       debugInfo.innerHTML += `<div>[${timestamp}] ${message}</div>`
       debugInfo.scrollTop = debugInfo.scrollHeight
+    }
+  }
+
+  // Notification functions
+  function showNotification(message, type = 'success', duration = 5000) {
+    chrome.storage.sync.get(['showNotifications'], (settings) => {
+      if (settings.showNotifications === false) return
+      
+      notificationText.textContent = message
+      notificationContent.className = `notification-content ${type}`
+      notificationArea.classList.remove('hidden')
+      
+      log(`Notification: ${message} (${type})`)
+      
+      // Auto-hide after duration
+      setTimeout(() => {
+        hideNotification()
+      }, duration)
+    })
+  }
+
+  function hideNotification() {
+    notificationArea.classList.add('hidden')
+  }
+
+  // Usage tracking functions
+  function updateUsageStats() {
+    const today = new Date().toDateString()
+    
+    chrome.storage.local.get(['usageStats'], (result) => {
+      const stats = result.usageStats || {}
+      const todayStats = stats[today] || { questionsAnswered: 0, timeSpent: 0 }
+      
+      // Update display
+      todayCountElement.textContent = todayStats.questionsAnswered
+      
+      // Calculate total time (session time + stored time)
+      const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000 / 60) // minutes
+      const totalTime = todayStats.timeSpent + sessionTime
+      
+      if (totalTime < 60) {
+        totalTimeElement.textContent = `${totalTime}m`
+      } else {
+        const hours = Math.floor(totalTime / 60)
+        const minutes = totalTime % 60
+        totalTimeElement.textContent = `${hours}h ${minutes}m`
+      }
+    })
+  }
+
+  function incrementQuestionCount() {
+    const today = new Date().toDateString()
+    
+    chrome.storage.local.get(['usageStats'], (result) => {
+      const stats = result.usageStats || {}
+      const todayStats = stats[today] || { questionsAnswered: 0, timeSpent: 0 }
+      
+      todayStats.questionsAnswered += 1
+      stats[today] = todayStats
+      
+      chrome.storage.local.set({ usageStats: stats }, () => {
+        updateUsageStats()
+        
+        // Add animation to the count
+        todayCountElement.classList.add('updated')
+        setTimeout(() => {
+          todayCountElement.classList.remove('updated')
+        }, 500)
+        
+        log(`Question count incremented to ${todayStats.questionsAnswered}`)
+      })
+    })
+  }
+
+  function saveSessionTime() {
+    const today = new Date().toDateString()
+    const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000 / 60) // minutes
+    
+    chrome.storage.local.get(['usageStats'], (result) => {
+      const stats = result.usageStats || {}
+      const todayStats = stats[today] || { questionsAnswered: 0, timeSpent: 0 }
+      
+      todayStats.timeSpent += sessionTime
+      stats[today] = todayStats
+      
+      chrome.storage.local.set({ usageStats: stats })
+      sessionStartTime = Date.now() // Reset session timer
+    })
+  }
+
+  function resetStats() {
+    if (confirm('Are you sure you want to reset all usage statistics?')) {
+      chrome.storage.local.remove(['usageStats'], () => {
+        updateUsageStats()
+        showNotification('Usage statistics have been reset', 'info')
+        log('Usage statistics reset')
+      })
     }
   }
 
@@ -69,15 +179,22 @@ document.addEventListener("DOMContentLoaded", () => {
     settingsToggleBtn.textContent = settingsPanel.classList.contains("hidden") ? "Settings" : "Hide Settings"
   })
 
+  // Notification close
+  notificationClose.addEventListener("click", hideNotification)
+
+  // Reset stats button
+  resetStatsBtn.addEventListener("click", resetStats)
+
   // Load settings
   function loadSettings() {
     log("Loading settings")
-    chrome.storage.sync.get(["apiKey", "model", "questionSelector", "autoDetect", "respondBengali"], (settings) => {
+    chrome.storage.sync.get(["apiKey", "model", "questionSelector", "autoDetect", "respondBengali", "showNotifications"], (settings) => {
       if (settings.apiKey) apiKeyInput.value = settings.apiKey
       if (settings.model) modelSelect.value = settings.model
       if (settings.questionSelector) questionSelectorInput.value = settings.questionSelector
       if (settings.autoDetect !== undefined) autoDetectCheckbox.checked = settings.autoDetect
       if (settings.respondBengali !== undefined) respondBengaliCheckbox.checked = settings.respondBengali
+      if (settings.showNotifications !== undefined) showNotificationsCheckbox.checked = settings.showNotifications
 
       log("Settings loaded successfully")
     })
@@ -91,12 +208,13 @@ document.addEventListener("DOMContentLoaded", () => {
       questionSelector: questionSelectorInput.value,
       autoDetect: autoDetectCheckbox.checked,
       respondBengali: respondBengaliCheckbox.checked,
+      showNotifications: showNotificationsCheckbox.checked,
     }
 
     log("Saving settings: " + JSON.stringify(settings))
     chrome.storage.sync.set(settings, () => {
       log("Settings saved successfully")
-      alert("Settings saved!")
+      showNotification("Settings saved successfully!", "success")
       settingsPanel.classList.add("hidden")
       settingsToggleBtn.textContent = "Settings"
     })
@@ -121,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const errorMsg = "Error: Cannot access the current tab"
         statusDiv.textContent = errorMsg
         log(errorMsg)
+        showNotification(errorMsg, "error")
         return
       }
 
@@ -132,6 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const errorMsg = `Error: ${chrome.runtime.lastError.message}`
           statusDiv.textContent = errorMsg
           log(errorMsg)
+          showNotification(errorMsg, "error")
           return
         }
 
@@ -139,6 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const errorMsg = "Error detecting questions"
           statusDiv.textContent = errorMsg
           log(errorMsg)
+          showNotification(errorMsg, "error")
           return
         }
 
@@ -146,13 +267,15 @@ document.addEventListener("DOMContentLoaded", () => {
         log(`${detectedQuestions.length} প্রশ্ন পাওয়া গেছে`)
 
         if (detectedQuestions.length === 0) {
-          statusDiv.textContent = "কোন প্রশ্ন পাওয়া যায়নি"
+          statusDiv.textContent = "কোন প্রশ্ন পাওয়া যায়নি"
           questionsContainer.classList.add("hidden")
+          showNotification("No questions found on this page", "warning")
           return
         }
 
         statusDiv.textContent = `${detectedQuestions.length}টি প্রশ্ন পাওয়া গেছে`
         displayQuestionsList(detectedQuestions)
+        showNotification(`Found ${detectedQuestions.length} questions on the page`, "success")
       })
     })
   }
@@ -209,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorMsg = "No questions to generate answers for"
       statusDiv.textContent = errorMsg
       log(errorMsg)
+      showNotification(errorMsg, "warning")
       return
     }
 
@@ -232,12 +356,20 @@ document.addEventListener("DOMContentLoaded", () => {
           const errorMsg = `Error: ${response?.error || "Unknown error"}`
           statusDiv.textContent = errorMsg
           log(errorMsg)
+          showNotification(errorMsg, "error")
           return
         }
 
         currentAnswers = response.answers
         log(`Generated ${currentAnswers.length} answers successfully`)
         statusDiv.textContent = "Answers generated successfully"
+        
+        // Increment question count for each question answered
+        for (let i = 0; i < detectedQuestions.length; i++) {
+          incrementQuestionCount()
+        }
+
+        showNotification(`Successfully generated ${currentAnswers.length} answers!`, "success")
 
         // Display the first answer
         if (currentAnswers.length > 0) {
@@ -252,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentManualQuestion = manualInput.value.trim()
 
     if (!currentManualQuestion) {
-      alert("Please enter a question")
+      showNotification("Please enter a question", "warning")
       log("Manual generation attempted with empty question")
       return
     }
@@ -280,6 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const errorMsg = `Error: ${response?.error || "Unknown error"}`
           answerContent.textContent = errorMsg
           log(errorMsg)
+          showNotification(errorMsg, "error")
           return
         }
 
@@ -288,6 +421,11 @@ document.addEventListener("DOMContentLoaded", () => {
         answerContent.textContent = currentManualAnswer
         answerContainer.classList.remove("hidden")
         manualDisplayBtn.disabled = false
+        
+        // Increment question count
+        incrementQuestionCount()
+        
+        showNotification("Answer generated successfully!", "success")
       },
     )
   }
@@ -298,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorMsg = "No answers to display"
       statusDiv.textContent = errorMsg
       log(errorMsg)
+      showNotification(errorMsg, "warning")
       return
     }
 
@@ -309,6 +448,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const errorMsg = "Error: Cannot access the current tab"
         statusDiv.textContent = errorMsg
         log(errorMsg)
+        showNotification(errorMsg, "error")
         return
       }
 
@@ -324,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorMsg = `Error: ${chrome.runtime.lastError.message}`
             statusDiv.textContent = errorMsg
             log(errorMsg)
+            showNotification(errorMsg, "error")
             return
           }
 
@@ -331,11 +472,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorMsg = "Error displaying answers on the page"
             statusDiv.textContent = errorMsg
             log(errorMsg)
+            showNotification(errorMsg, "error")
             return
           }
 
           statusDiv.textContent = "Answers displayed on the page"
           log("Answers displayed successfully on the page")
+          showNotification("Answers displayed on the page successfully!", "success")
         },
       )
     })
@@ -344,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Display manual answer on the page
   function displayManualAnswerOnPage() {
     if (!currentManualQuestion || !currentManualAnswer) {
-      alert("Please generate an answer first")
+      showNotification("Please generate an answer first", "warning")
       log("Attempted to display manual answer without generating one first")
       return
     }
@@ -354,7 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs || !tabs[0] || !tabs[0].id) {
         const errorMsg = "Error: Cannot access the current tab"
-        alert(errorMsg)
+        showNotification(errorMsg, "error")
         log(errorMsg)
         return
       }
@@ -369,19 +512,20 @@ document.addEventListener("DOMContentLoaded", () => {
         (response) => {
           if (chrome.runtime.lastError) {
             const errorMsg = `Error: ${chrome.runtime.lastError.message}`
-            alert(errorMsg)
+            showNotification(errorMsg, "error")
             log(errorMsg)
             return
           }
 
           if (!response || !response.success) {
             const errorMsg = "Error displaying answer on the page"
-            alert(errorMsg)
+            showNotification(errorMsg, "error")
             log(errorMsg)
             return
           }
 
           log("Manual answer displayed successfully on the page")
+          showNotification("Answer displayed on the page successfully!", "success")
         },
       )
     })
@@ -403,6 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const originalText = copyAnswerBtn.textContent
         copyAnswerBtn.textContent = "Copied!"
         log("Answer copied to clipboard successfully")
+        showNotification("Answer copied to clipboard!", "success", 2000)
 
         setTimeout(() => {
           copyAnswerBtn.textContent = originalText
@@ -410,6 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((err) => {
         log(`Failed to copy text: ${err}`)
+        showNotification("Failed to copy text", "error")
         console.error("Failed to copy text: ", err)
       })
   }
@@ -432,8 +578,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 
+  // Save session time when popup closes
+  window.addEventListener('beforeunload', saveSessionTime)
+
+  // Update usage stats periodically
+  setInterval(updateUsageStats, 30000) // Update every 30 seconds
+
   // Initialize
   log("Initializing popup")
   loadSettings()
+  updateUsageStats()
   scanPage()
+  
+  // Show welcome notification
+  setTimeout(() => {
+    showNotification("Welcome to Babel AI Assistant! Ready to help with your questions.", "info", 3000)
+  }, 1000)
 })
